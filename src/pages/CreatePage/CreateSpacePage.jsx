@@ -12,6 +12,7 @@ import {
 import MetricSelection from './MetricSelection';
 import PlayerName from './PlayerName';
 import SpaceDetails from './SpaceDetails';
+import Divider from '@mui/material/Divider';
 
 const steps = ['Metrics', 'Players', 'Details'];
 
@@ -60,15 +61,26 @@ function CreateSpacePage() {
 
   return (
     <Container
-      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+      }}
     >
       <Box style={{ flexGrow: 1 }}>
         <Typography variant="h4" align="center" marginTop={2}>
           Create Space
         </Typography>
-        {getStepContent(activeStep)}
+        <div style={{ flex: 1 }}>{getStepContent(activeStep)}</div>
       </Box>
-      <Box style={{ textAlign: 'center', marginBottom: '20px' }}>
+      <Divider style={{ padding: '8px' }} />
+      <Box
+        style={{
+          textAlign: 'center',
+          paddingTop: '15px',
+          paddingBottom: '15px',
+        }}
+      >
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label) => (
             <Step key={label}>
