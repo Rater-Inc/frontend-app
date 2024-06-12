@@ -38,7 +38,8 @@ const dummyParticipants = [
   { id: 3, name: 'Player 3' },
 ];
 
-const RatingPage = ({ match }) => {
+const RatingPage = ({}) => {
+  //TODO change to useParams
   const { spaceId } = useParams();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');

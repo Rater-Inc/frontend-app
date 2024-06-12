@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -7,24 +7,38 @@ import {
   StepLabel,
   Button,
   Box,
+  ButtonGroup,
 } from '@mui/material';
-import TemplateSelection from './TemplateSelection';
 import MetricSelection from './MetricSelection';
 import PlayerName from './PlayerName';
 import SpaceDetails from './SpaceDetails';
 
-const steps = [
-  'Template Selection',
-  'Metric Selection',
-  'Player Name',
-  'Space Details',
-];
+const steps = ['Metrics', 'Players', 'Details'];
 
 function CreateSpacePage() {
   const [activeStep, setActiveStep] = useState(0);
+  const [metrics, setMetrics] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const metricSelectionRef = useRef();
+  const playerNameRef = useRef();
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    if (activeStep === 0) {
+      const { valid, data } = metricSelectionRef.current.validateAndGetData();
+      if (valid) {
+        setMetrics(data);
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      }
+    } else if (activeStep === 1) {
+      const { valid, data } = playerNameRef.current.validateAndGetData();
+      if (valid) {
+        setPlayers(data);
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      }
+    } else if (activeStep === 2) {
+      // Additional validation if needed
+      // handleCreateSpace(); // This can be moved to the SpaceDetails component
+    }
   };
 
   const handleBack = () => {
@@ -34,24 +48,27 @@ function CreateSpacePage() {
   const getStepContent = (stepIndex) => {
     switch (stepIndex) {
       case 0:
-        return <TemplateSelection />;
+        return <MetricSelection ref={metricSelectionRef} />;
       case 1:
-        return <MetricSelection />;
+        return <PlayerName ref={playerNameRef} />;
       case 2:
-        return <PlayerName />;
-      case 3:
-        return <SpaceDetails />;
+        return <SpaceDetails metrics={metrics} players={players} />;
       default:
         return 'Unknown step';
     }
   };
 
   return (
-    <Container>
-      <Box mt={5}>
-        <Typography variant="h4" align="center">
-          Multi Step Form
+    <Container
+      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+    >
+      <Box style={{ flexGrow: 1 }}>
+        <Typography variant="h4" align="center" marginTop={2}>
+          Create Space
         </Typography>
+        {getStepContent(activeStep)}
+      </Box>
+      <Box style={{ textAlign: 'center', marginBottom: '20px' }}>
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label) => (
             <Step key={label}>
@@ -59,27 +76,22 @@ function CreateSpacePage() {
             </Step>
           ))}
         </Stepper>
-        <Box mt={5}>
-          {getStepContent(activeStep)}
-          <Box mt={2}>
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              variant="contained"
-              color="secondary"
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              style={{ marginLeft: 8 }}
-            >
-              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-            </Button>
-          </Box>
-        </Box>
+        <ButtonGroup size="large" sx={{ paddingTop: '15px' }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+            color="secondary"
+          >
+            Back
+          </Button>
+          <Button
+            color="primary"
+            onClick={handleNext}
+            disabled={activeStep === steps.length - 1}
+          >
+            {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+          </Button>
+        </ButtonGroup>
       </Box>
     </Container>
   );
