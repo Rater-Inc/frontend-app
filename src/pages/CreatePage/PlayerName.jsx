@@ -9,7 +9,7 @@ import { TextField, Box, Typography, IconButton, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-const PlayerName = forwardRef((props, ref) => {
+const PlayerName = forwardRef(({ previousStepValues }, ref) => {
   const [players, setPlayers] = useState([{ name: '' }]);
   const [showMaxWarning, setShowMaxWarning] = useState(false);
   const [showEmptyWarning, setShowEmptyWarning] = useState(false);
@@ -50,6 +50,12 @@ const PlayerName = forwardRef((props, ref) => {
       setLastPlayerCount(players.length);
     }
   }, [players]);
+
+  useEffect(() => {
+    if (previousStepValues && previousStepValues.length > 0) {
+      setPlayers(previousStepValues);
+    }
+  }, [previousStepValues]);
 
   // Expose validation and data gathering to parent component
   useImperativeHandle(ref, () => ({

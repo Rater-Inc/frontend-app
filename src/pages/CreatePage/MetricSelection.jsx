@@ -9,7 +9,7 @@ import { TextField, Box, Typography, IconButton, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-const MetricSelection = forwardRef(({ error }, ref) => {
+const MetricSelection = forwardRef(({ error, previousStepValues }, ref) => {
   const [metrics, setMetrics] = useState([{ name: '', description: '' }]);
   const [showMaxWarning, setShowMaxWarning] = useState(false);
   const [showEmptyWarning, setShowEmptyWarning] = useState(false);
@@ -50,6 +50,12 @@ const MetricSelection = forwardRef(({ error }, ref) => {
       setLastMetricCount(metrics.length);
     }
   }, [metrics]);
+
+  useEffect(() => {
+    if (previousStepValues && previousStepValues.length > 0) {
+      setMetrics(previousStepValues);
+    }
+  }, [previousStepValues]);
 
   // Expose validation and data gathering to parent component
   useImperativeHandle(ref, () => ({

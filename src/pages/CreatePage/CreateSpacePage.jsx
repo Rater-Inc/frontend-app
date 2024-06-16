@@ -49,9 +49,14 @@ function CreateSpacePage() {
   const getStepContent = (stepIndex) => {
     switch (stepIndex) {
       case 0:
-        return <MetricSelection ref={metricSelectionRef} />;
+        return (
+          <MetricSelection
+            ref={metricSelectionRef}
+            previousStepValues={metrics}
+          />
+        );
       case 1:
-        return <PlayerName ref={playerNameRef} />;
+        return <PlayerName ref={playerNameRef} previousStepValues={players} />;
       case 2:
         return <SpaceDetails metrics={metrics} players={players} />;
       default:
