@@ -8,6 +8,7 @@ import React, {
 import { TextField, Box, Typography, IconButton, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import * as constants from '../../locales/constants';
 
 const PlayerName = forwardRef(({ previousStepValues }, ref) => {
   const [players, setPlayers] = useState([{ name: '' }]);
@@ -119,12 +120,12 @@ const PlayerName = forwardRef(({ previousStepValues }, ref) => {
       )}
       {showMaxWarning && (
         <Typography variant="subtitle1" color="error" marginTop={2}>
-          Maximum 16 players can be added.
+          {constants.MAX_PLAYER}
         </Typography>
       )}
       {showEmptyWarning && (
         <Typography variant="subtitle1" color="error" marginTop={2}>
-          Please fill in all player names before adding a new one.
+          {constants.FILL_PLAYER_NAMES}
         </Typography>
       )}
     </Box>

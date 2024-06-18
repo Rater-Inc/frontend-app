@@ -8,6 +8,7 @@ import React, {
 import { TextField, Box, Typography, IconButton, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import * as constants from '../../locales/constants';
 
 const MetricSelection = forwardRef(({ error, previousStepValues }, ref) => {
   const [metrics, setMetrics] = useState([{ name: '', description: '' }]);
@@ -86,7 +87,7 @@ const MetricSelection = forwardRef(({ error, previousStepValues }, ref) => {
         >
           <TextField
             inputRef={(el) => (inputRefs.current[index] = el)}
-            label={`Metric Name ${index + 1}`}
+            label={`${constants.METRIC_NAME} ${index + 1}`}
             variant="outlined"
             fullWidth
             margin="dense"
@@ -99,7 +100,7 @@ const MetricSelection = forwardRef(({ error, previousStepValues }, ref) => {
               }
             }}
             error={error}
-            helperText={error && 'Please fill out this field'}
+            helperText={error && {FILL_FIELD_ERROR_TEXT}}
           />
           <IconButton
             aria-label="delete"
@@ -123,13 +124,12 @@ const MetricSelection = forwardRef(({ error, previousStepValues }, ref) => {
 
       {showMaxWarning && (
         <Typography variant="subtitle1" color="error" marginTop={2}>
-          Maximum 5 metrics can be added.
+          {constants.MAX_METRIC_ERROR}
         </Typography>
       )}
       {showEmptyWarning && (
         <Typography variant="subtitle1" color="error" marginTop={2}>
-          Please fill in all metric names and descriptions before adding a new
-          one.
+          {constants.FILL_ALL_METRIC_FIELDS}
         </Typography>
       )}
     </Box>
