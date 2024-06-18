@@ -17,7 +17,7 @@ const SpaceDetails = ({ metrics, players }) => {
     name: '',
     description: '',
     password: '',
-    nickname: '',
+    creatorNickname: '',
     locked: false,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -44,8 +44,8 @@ const SpaceDetails = ({ metrics, players }) => {
     console.log(JSON.stringify(spaceData));
 
     // Replace with actual API call
-    /*
-    fetch('https://api.example.com/create-space', {
+
+    fetch('https://localhost:7242/api/Space/CreateSpace', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,6 @@ const SpaceDetails = ({ metrics, players }) => {
       .catch((error) => {
         console.error('Error creating space:', error);
       });
-      */
   };
 
   return (
@@ -113,8 +112,8 @@ const SpaceDetails = ({ metrics, players }) => {
         variant="outlined"
         fullWidth
         margin="normal"
-        value={details.nickname}
-        onChange={(e) => handleChange('nickname', e.target.value)}
+        value={details.creatorNickname}
+        onChange={(e) => handleChange('creatorNickname', e.target.value)}
         helperText="What nickname should we call you, the mighty creator?"
       />
       <FormControlLabel
