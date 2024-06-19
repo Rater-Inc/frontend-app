@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Swal from 'sweetalert2'
+import { useNavigate } from 'react-router-dom';
 
 const SpaceDetails = ({ metrics, players }) => {
   const [details, setDetails] = useState({
@@ -21,6 +23,8 @@ const SpaceDetails = ({ metrics, players }) => {
     locked: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (field, value) => {
     setDetails({ ...details, [field]: value });
@@ -45,7 +49,7 @@ const SpaceDetails = ({ metrics, players }) => {
 
     // Replace with actual API call
 
-    fetch('https://localhost:7242/api/Space/CreateSpace', {
+    fetch('http://localhost:8031/api/Space/CreateSpace', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -54,10 +58,21 @@ const SpaceDetails = ({ metrics, players }) => {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.fire({
+          title: "Success",
+          text: "Space Created Successfully!",
+          icon: "success"
+        });
         console.log('Space created successfully:', data);
+
+        navigate(`/rating-page/${data.spaceId}`, { state: { link: data.link} });
       })
       .catch((error) => {
-        console.error('Error creating space:', error);
+        Swal.fire({
+          title: "Error Occurred",
+          text: "Error Creating Space!",
+          icon: "error"
+        });
       });
   };
 
