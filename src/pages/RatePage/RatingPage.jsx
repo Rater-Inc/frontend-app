@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 
 import {
   Container,
@@ -48,6 +48,8 @@ const RatingPage = ({}) => {
   const [error, setError] = useState('');
   const [activeStep, setActiveStep] = useState(0);
   const maxSteps = dummyParticipants.length;
+  const location = useLocation();
+  const { link: link } = location.state || {};
 
   useEffect(() => {
     // Fetch participants and metrics from the API based on spaceId
@@ -57,12 +59,24 @@ const RatingPage = ({}) => {
   }, [spaceId]);
 
   const handleLogin = () => {
-    // Dummy authentication for demonstration
-    if (password === '123') {
-      setAuthenticated(true);
-    } else {
-      setError('Invalid password');
-    }
+    const url = `http://localhost:8031/api/Auth?link=${encodeURIComponent(link)}&password=${encodeURIComponent(password)}`;
+
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: '',
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Auth process successfully: ', data);
+      })
+      .catch((error) => {
+        console.log('Auth process error: ', data);
+      });
+
   };
 
   const handleRatingChange = (participantId, metricId, value) => {
