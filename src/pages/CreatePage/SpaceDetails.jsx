@@ -62,10 +62,12 @@ const SpaceDetails = ({ metrics, players }) => {
           title: "Success",
           text: "Space Created Successfully!",
           icon: "success"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate(`/rating/${data.spaceId}`, { state: { link: data.link } });
+          }
         });
         console.log('Space created successfully:', data);
-
-        navigate(`/rating-page/${data.spaceId}`, { state: { link: data.link} });
       })
       .catch((error) => {
         Swal.fire({
