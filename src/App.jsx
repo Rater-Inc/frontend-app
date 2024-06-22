@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import CreateSpacePage from './pages/CreatePage/CreateSpacePage';
 import RatingPage from './pages/RatePage/RatingPage';
+import ResultDisplayPage from './pages/ResultPage/ResultDisplayPage';
 
 function App() {
   const darkTheme = createTheme({
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<CreateSpacePage />} />
         <Route path="/rating/:spaceId" element={<RatingPage />} />
+        <Route path="/result-display" element={<ResultDisplayPage />} />
       </Routes>
     </ThemeProvider>
   );
