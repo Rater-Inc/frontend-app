@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-
 import {
   Container,
   TextField,
@@ -12,34 +11,9 @@ import {
 } from '@mui/material';
 import Rating from '@mui/material/Rating';
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
+import Swal from 'sweetalert2';
 
-const dummyMetrics = [
-  { id: 1, name: 'Condition' },
-  { id: 2, name: 'Harmony' },
-  { id: 3, name: 'Friendly Play' },
-  { id: 4, name: 'Overall Performance' },
-];
-
-const dummyParticipants = [
-  { id: 1, name: 'Player 1' },
-  { id: 2, name: 'Player 2' },
-  { id: 3, name: 'Player 3' },
-  { id: 1, name: 'Player 1' },
-  { id: 2, name: 'Player 2' },
-  { id: 3, name: 'Player 3' },
-  { id: 1, name: 'Player 1' },
-  { id: 2, name: 'Player 2' },
-  { id: 3, name: 'Player 3' },
-  { id: 1, name: 'Player 1' },
-  { id: 2, name: 'Player 2' },
-  { id: 3, name: 'Player 3' },
-  { id: 1, name: 'Player 1' },
-  { id: 2, name: 'Player 2' },
-  { id: 3, name: 'Player 3' },
-];
-
-const RatingPage = ({}) => {
-  //TODO change to useParams
+const RatingPage = () => {
   const { spaceId } = useParams();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
@@ -47,21 +21,41 @@ const RatingPage = ({}) => {
   const [ratings, setRatings] = useState({});
   const [error, setError] = useState('');
   const [activeStep, setActiveStep] = useState(0);
-  const maxSteps = dummyParticipants.length;
+  const [participants, setParticipants] = useState([]);
+  const maxSteps = participants.length;
   const location = useLocation();
-  const { link: link } = location.state || {};
+  const { link } = location.state || {};
+  const [token, setToken] = useState('');
+  const [metrics, setMetrics] = useState([]);
 
   useEffect(() => {
-    // Fetch participants and metrics from the API based on spaceId
-    // Example:
-    // fetchParticipants(spaceId).then(setParticipants);
-    // fetchMetrics(spaceId).then(setMetrics);
-  }, [spaceId]);
+    if (authenticated) {
+      fetchParticipants();
+    }
+  }, [authenticated]);
 
-  const handleLogin = () => {
+  const fetchParticipants = () => {
+    const url = `http://localhost:8031/api/Space/GetSpaceByLink?link=${encodeURIComponent(link)}`;
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: '',
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setParticipants(data.participants);
+        setMetrics(data.metrics);
+      })
+      .catch((error) => {
+        console.error('Error fetching participants:', error);
+      });
+  };
+
+  const handleLogin = (callback) => {
     const url = `http://localhost:8031/api/Auth?link=${encodeURIComponent(link)}&password=${encodeURIComponent(password)}`;
-
-
     fetch(url, {
       method: 'POST',
       headers: {
@@ -71,12 +65,22 @@ const RatingPage = ({}) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log('Auth process successfully: ', data);
+        if (data.success === false) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Hatalı şifre! Lütfen tekrar deneyin.',
+          });
+        } else {
+          setAuthenticated(true);
+          setToken(data.jwtToken); // Save the token
+          console.log('Auth process successfully:', data);
+          if (callback) callback(); // Token yenilendiğinde callback fonksiyonunu çağır
+        }
       })
       .catch((error) => {
-        console.log('Auth process error: ', data);
+        console.log('Auth process error:', error);
       });
-
   };
 
   const handleRatingChange = (participantId, metricId, value) => {
@@ -89,15 +93,57 @@ const RatingPage = ({}) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (retry = false) => {
+    const url = `http://localhost:8031/api/Rating`;
+
+    const ratingDetails = [];
+
+    for (const participantId in ratings) {
+        for (const metricId in ratings[participantId]) {
+            ratingDetails.push({
+                rateeId: Number(participantId),
+                metricId: Number(metricId),
+                score: ratings[participantId][metricId],
+            });
+        }
+    }
+
     const payload = {
-      nickname,
-      spaceId,
-      ratings,
+        raterNickName: nickname,
+        spaceId: Number(spaceId),
+        ratingDetails,
     };
-    console.log(payload);
-    // Submit the ratings to the API
-  };
+
+    console.log('Payload:', payload);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (response.status === 401 && !retry) {
+            // Eğer token expired ise ve henüz retry yapılmadıysa
+            handleLogin(() => handleSubmit(true)); // Yeni token al ve tekrar dene
+        } else if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        } else {
+            return response.json();
+        }
+    })
+    .then(data => {
+        if (data) {
+            console.log('Success:', data);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+};
+
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -152,71 +198,74 @@ const RatingPage = ({}) => {
 
   return (
     <Container>
-      <Box mt={5}>
-        <Typography variant="h4" align="center">
-          Rate Participants
-        </Typography>
-        {dummyParticipants.map((participant, index) => (
-          <Box key={participant.id} hidden={index !== activeStep}>
-            <Typography variant="h5">{participant.name}</Typography>
-            {dummyMetrics.map((metric) => (
-              <Paper
-                key={metric.id}
-                style={{ padding: '16px', margin: '16px 0' }}
+      <Box mt={5} display="flex" flexDirection="column" justifyContent="space-between" minHeight="80vh">
+        <Box>
+          <Typography variant="h4" align="center">
+            Rate {participants[activeStep]?.participantName} participant
+          </Typography>
+          {participants.map((participant, index) => (
+            <Box key={participant.participantId} hidden={index !== activeStep}>
+              {metrics.map((metric) => (
+                <Paper
+                  key={metric.metricId}
+                  style={{ padding: '16px', margin: '16px 0' }}
+                >
+                  <Typography variant="h6">{metric.name}</Typography>
+                  <Rating
+                    name={`rating-${participant.participantId}-${metric.metricId}`}
+                    value={
+                      (ratings[participant.participantId] &&
+                        ratings[participant.participantId][metric.metricId]) ||
+                      0
+                    }
+                    onChange={(event, newValue) =>
+                      handleRatingChange(participant.participantId, metric.metricId, newValue)
+                    }
+                  />
+                </Paper>
+              ))}
+            </Box>
+          ))}
+        </Box>
+        <Box>
+          <MobileStepper
+            steps={maxSteps}
+            position="static"
+            variant="dots"
+            activeStep={activeStep}
+            nextButton={
+              <Button
+                size="small"
+                onClick={handleNext}
+                disabled={activeStep === maxSteps - 1}
               >
-                <Typography variant="h6">{metric.name}</Typography>
-                <Rating
-                  name={`rating-${participant.id}-${metric.id}`}
-                  value={
-                    (ratings[participant.id] &&
-                      ratings[participant.id][metric.id]) ||
-                    0
-                  }
-                  onChange={(event, newValue) =>
-                    handleRatingChange(participant.id, metric.id, newValue)
-                  }
-                />
-              </Paper>
-            ))}
-          </Box>
-        ))}
-        <MobileStepper
-          steps={maxSteps}
-          position="static"
-          variant="dots"
-          activeStep={activeStep}
-          nextButton={
+                Next
+                <KeyboardArrowRight />
+              </Button>
+            }
+            backButton={
+              <Button
+                size="small"
+                onClick={handleBack}
+                disabled={activeStep === 0}
+              >
+                <KeyboardArrowLeft />
+                Back
+              </Button>
+            }
+          />
+          {activeStep === maxSteps - 1 && (
             <Button
-              size="small"
-              onClick={handleNext}
-              disabled={activeStep === maxSteps - 1}
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => handleSubmit(false)}
+              style={{ marginTop: '16px' }}
             >
-              Next
-              <KeyboardArrowRight />
+              Submit Ratings
             </Button>
-          }
-          backButton={
-            <Button
-              size="small"
-              onClick={handleBack}
-              disabled={activeStep === 0}
-            >
-              <KeyboardArrowLeft />
-              Back
-            </Button>
-          }
-        />
-        {activeStep === maxSteps - 1 && (
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleSubmit}
-            style={{ marginTop: '16px' }}
-          >
-            Submit Ratings
-          </Button>
-        )}
+          )}
+        </Box>
       </Box>
     </Container>
   );

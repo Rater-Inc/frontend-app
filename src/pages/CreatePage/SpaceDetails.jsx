@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 
 const SpaceDetails = ({ metrics, players }) => {
@@ -39,11 +39,18 @@ const SpaceDetails = ({ metrics, players }) => {
   };
 
   const handleCreateSpace = () => {
+
+    const participants = players.map(player => ({
+      ...player,
+      participantName: player.name
+    }));
+
     const spaceData = {
       ...details,
       metrics,
-      players,
+      participants,
     };
+    
 
     console.log(JSON.stringify(spaceData));
 
