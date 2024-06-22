@@ -71,7 +71,7 @@ const RatingPage = () => {
             text: 'Hatalı şifre! Lütfen tekrar deneyin.',
           });
         } else {
-          setSpaceId(data.space_id);
+          setSpaceId(data.spaceId);
           setAuthenticated(true);
           setToken(data.jwtToken); // Save the token
           console.log('Auth process successfully:', data);
