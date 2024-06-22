@@ -14,7 +14,7 @@ import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 
 const RatingPage = () => {
-  const { spaceId } = useParams();
+  const { spaceLink } = useParams();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -23,10 +23,9 @@ const RatingPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [participants, setParticipants] = useState([]);
   const maxSteps = participants.length;
-  const location = useLocation();
-  const { link } = location.state || {};
   const [token, setToken] = useState('');
   const [metrics, setMetrics] = useState([]);
+  const [spaceId, setSpaceId] = useState(0);
 
   useEffect(() => {
     if (authenticated) {
@@ -35,11 +34,11 @@ const RatingPage = () => {
   }, [authenticated]);
 
   const fetchParticipants = () => {
-    const url = `http://localhost:8031/api/Space/GetSpaceByLink?link=${encodeURIComponent(link)}`;
+    const url = `http://localhost:8031/api/Space/GetSpaceByLink?link=${encodeURIComponent(spaceLink)}`;
     fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: '',
@@ -55,7 +54,7 @@ const RatingPage = () => {
   };
 
   const handleLogin = (callback) => {
-    const url = `http://localhost:8031/api/Auth?link=${encodeURIComponent(link)}&password=${encodeURIComponent(password)}`;
+    const url = `http://localhost:8031/api/Auth?link=${encodeURIComponent(spaceLink)}&password=${encodeURIComponent(password)}`;
     fetch(url, {
       method: 'POST',
       headers: {
@@ -72,10 +71,10 @@ const RatingPage = () => {
             text: 'Hatalı şifre! Lütfen tekrar deneyin.',
           });
         } else {
+          setSpaceId(data.space_id);
           setAuthenticated(true);
           setToken(data.jwtToken); // Save the token
           console.log('Auth process successfully:', data);
-          if (callback) callback(); // Token yenilendiğinde callback fonksiyonunu çağır
         }
       })
       .catch((error) => {
@@ -99,51 +98,50 @@ const RatingPage = () => {
     const ratingDetails = [];
 
     for (const participantId in ratings) {
-        for (const metricId in ratings[participantId]) {
-            ratingDetails.push({
-                rateeId: Number(participantId),
-                metricId: Number(metricId),
-                score: ratings[participantId][metricId],
-            });
-        }
+      for (const metricId in ratings[participantId]) {
+        ratingDetails.push({
+          rateeId: Number(participantId),
+          metricId: Number(metricId),
+          score: ratings[participantId][metricId],
+        });
+      }
     }
 
     const payload = {
-        raterNickName: nickname,
-        spaceId: Number(spaceId),
-        ratingDetails,
+      raterNickName: nickname,
+      spaceId: spaceId,
+      ratingDetails,
     };
 
     console.log('Payload:', payload);
 
     fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
+      method: 'POST',
+      headers: {
+        Authorization: `bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     })
-    .then(response => {
+      .then((response) => {
         if (response.status === 401 && !retry) {
-            // Eğer token expired ise ve henüz retry yapılmadıysa
-            handleLogin(() => handleSubmit(true)); // Yeni token al ve tekrar dene
+          // Eğer token expired ise ve henüz retry yapılmadıysa
+          handleLogin(() => handleSubmit(true)); // Yeni token al ve tekrar dene
         } else if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         } else {
-            return response.json();
+          return response.json();
         }
-    })
-    .then(data => {
+      })
+      .then((data) => {
         if (data) {
-            console.log('Success:', data);
+          console.log('Success:', data);
         }
-    })
-    .catch((error) => {
+      })
+      .catch((error) => {
         console.error('Error:', error);
-    });
-};
-
+      });
+  };
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -198,7 +196,13 @@ const RatingPage = () => {
 
   return (
     <Container>
-      <Box mt={5} display="flex" flexDirection="column" justifyContent="space-between" minHeight="80vh">
+      <Box
+        mt={5}
+        display="flex"
+        flexDirection="column"
+        justifyContent="space-between"
+        minHeight="80vh"
+      >
         <Box>
           <Typography variant="h4" align="center">
             Rate {participants[activeStep]?.participantName} participant
@@ -219,7 +223,11 @@ const RatingPage = () => {
                       0
                     }
                     onChange={(event, newValue) =>
-                      handleRatingChange(participant.participantId, metric.metricId, newValue)
+                      handleRatingChange(
+                        participant.participantId,
+                        metric.metricId,
+                        newValue
+                      )
                     }
                   />
                 </Paper>

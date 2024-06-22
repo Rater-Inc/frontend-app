@@ -39,10 +39,9 @@ const SpaceDetails = ({ metrics, players }) => {
   };
 
   const handleCreateSpace = () => {
-
-    const participants = players.map(player => ({
+    const participants = players.map((player) => ({
       ...player,
-      participantName: player.name
+      participantName: player.name,
     }));
 
     const spaceData = {
@@ -50,11 +49,6 @@ const SpaceDetails = ({ metrics, players }) => {
       metrics,
       participants,
     };
-    
-
-    console.log(JSON.stringify(spaceData));
-
-    // Replace with actual API call
 
     fetch('http://localhost:8031/api/Space/CreateSpace', {
       method: 'POST',
@@ -66,21 +60,21 @@ const SpaceDetails = ({ metrics, players }) => {
       .then((response) => response.json())
       .then((data) => {
         Swal.fire({
-          title: "Success",
-          text: "Space Created Successfully!",
-          icon: "success"
+          title: 'Success',
+          text: 'Space Created Successfully!',
+          icon: 'success',
         }).then((result) => {
           if (result.isConfirmed) {
-            navigate(`/rating/${data.spaceId}`, { state: { link: data.link } });
+            navigate(`/rating/${data.link}`);
           }
         });
         console.log('Space created successfully:', data);
       })
       .catch((error) => {
         Swal.fire({
-          title: "Error Occurred",
-          text: "Error Creating Space!",
-          icon: "error"
+          title: 'Error Occurred',
+          text: 'Error Creating Space!',
+          icon: 'error',
         });
       });
   };

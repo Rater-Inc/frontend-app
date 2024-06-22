@@ -17,7 +17,7 @@ function App() {
       <CssBaseline />
       <Routes>
         <Route path="/" element={<CreateSpacePage />} />
-        <Route path="/rating/:spaceId" element={<RatingPage />} />
+        <Route path="/rating/:spaceLink" element={<RatingPage />} />
       </Routes>
     </ThemeProvider>
   );
