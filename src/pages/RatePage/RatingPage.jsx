@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   Container,
   TextField,
@@ -12,6 +12,7 @@ import {
 import Rating from '@mui/material/Rating';
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const RatingPage = () => {
   const { spaceLink } = useParams();
@@ -26,6 +27,8 @@ const RatingPage = () => {
   const [token, setToken] = useState('');
   const [metrics, setMetrics] = useState([]);
   const [spaceId, setSpaceId] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (authenticated) {
@@ -130,6 +133,15 @@ const RatingPage = () => {
         } else if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         } else {
+          Swal.fire({
+            title: 'Submit Success!',
+            text: 'Ratings submitted successfully, wait for the results!',
+            icon: 'success',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate(`/rating/${spaceLink}`);
+            }
+          });
           return response.json();
         }
       })
