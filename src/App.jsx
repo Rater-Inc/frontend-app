@@ -4,6 +4,8 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import CreateSpacePage from './pages/CreatePage/CreateSpacePage';
 import RatingPage from './pages/RatePage/RatingPage';
+import PersonalResultPage from './pages/ResultPages/PersonalResultPage';
+import GeneralResultPage from './pages/ResultPages/GeneralResultPage';
 
 function App() {
   const darkTheme = createTheme({
@@ -18,6 +20,8 @@ function App() {
       <Routes>
         <Route path="/" element={<CreateSpacePage />} />
         <Route path="/rating/:spaceLink" element={<RatingPage />} />
+        <Route path="/result-display" element={<PersonalResultPage />} />
+        <Route path="/general-result" element={<GeneralResultPage />} />
       </Routes>
     </ThemeProvider>
   );
