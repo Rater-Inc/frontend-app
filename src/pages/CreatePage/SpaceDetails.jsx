@@ -14,6 +14,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 
+import { createSpace } from '../../api/space';
+
 const SpaceDetails = ({ metrics, players }) => {
   const [details, setDetails] = useState({
     name: '',
@@ -38,7 +40,7 @@ const SpaceDetails = ({ metrics, players }) => {
     setDetails({ ...details, locked: event.target.checked });
   };
 
-  const handleCreateSpace = () => {
+  const handleCreateSpace = async () => {
     const participants = players.map((player) => ({
       ...player,
       participantName: player.name,
@@ -50,14 +52,7 @@ const SpaceDetails = ({ metrics, players }) => {
       participants,
     };
 
-    fetch('http://localhost:8031/api/Space/CreateSpace', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(spaceData),
-    })
-      .then((response) => response.json())
+    const data = await createSpace(spaceData)
       .then((data) => {
         Swal.fire({
           title: 'Success',

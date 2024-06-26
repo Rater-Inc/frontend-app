@@ -14,6 +14,10 @@ import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 
+import { spaceLogin } from '../../api/auth';
+import { submitRatings } from '../../api/result';
+import { getSpaceByLink } from '../../api/space';
+
 const RatingPage = () => {
   const { spaceLink } = useParams();
   const [nickname, setNickname] = useState('');
@@ -32,57 +36,35 @@ const RatingPage = () => {
 
   useEffect(() => {
     if (authenticated) {
-      fetchParticipants();
+      getSpaceByLink(spaceLink, token)
+        .then((data) => {
+          setParticipants(data.participants);
+          setMetrics(data.metrics);
+        })
+        .catch((error) => {
+          console.error('Error fetching participants:', error);
+        });
     }
   }, [authenticated]);
 
-  const fetchParticipants = () => {
-    const url = `http://localhost:8031/api/Space/GetSpaceByLink?link=${encodeURIComponent(spaceLink)}`;
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: '',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setParticipants(data.participants);
-        setMetrics(data.metrics);
-      })
-      .catch((error) => {
-        console.error('Error fetching participants:', error);
-      });
-  };
+  const handleLogin = async () => {
+    try {
+      const data = await spaceLogin(spaceLink, password);
 
-  const handleLogin = (callback) => {
-    const url = `http://localhost:8031/api/Auth?link=${encodeURIComponent(spaceLink)}&password=${encodeURIComponent(password)}`;
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: '',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success === false) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Hatalı şifre! Lütfen tekrar deneyin.',
-          });
-        } else {
-          setSpaceId(data.spaceId);
-          setAuthenticated(true);
-          setToken(data.jwtToken); // Save the token
-          console.log('Auth process successfully:', data);
-        }
-      })
-      .catch((error) => {
-        console.log('Auth process error:', error);
-      });
+      if (data.success === false) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops... Wrong password!',
+          text: 'Ask your friend for the correct password..',
+        });
+      } else {
+        setAuthenticated(true);
+        setToken(data.jwtToken);
+        setSpaceId(data.spaceId);
+      }
+    } catch (error) {
+      console.log('Auth process error:', error);
+    }
   };
 
   const handleRatingChange = (participantId, metricId, value) => {
@@ -96,8 +78,6 @@ const RatingPage = () => {
   };
 
   const handleSubmit = (retry = false) => {
-    const url = `http://localhost:8031/api/Rating`;
-
     const ratingDetails = [];
 
     for (const participantId in ratings) {
@@ -116,43 +96,24 @@ const RatingPage = () => {
       ratingDetails,
     };
 
-    console.log('Payload:', payload);
-
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => {
-        if (response.status === 401 && !retry) {
-          // Eğer token expired ise ve henüz retry yapılmadıysa
-          handleLogin(() => handleSubmit(true)); // Yeni token al ve tekrar dene
-        } else if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        } else {
-          Swal.fire({
-            title: 'Submit Success!',
-            text: 'Ratings submitted successfully, wait for the results!',
-            icon: 'success',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              navigate(`/rating/${spaceLink}`);
-            }
-          });
-          return response.json();
-        }
-      })
-      .then((data) => {
-        if (data) {
-          console.log('Success:', data);
-        }
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    submitRatings(payload, token).then((response) => {
+      if (response.status === 401 && !retry) {
+        handleLogin(() => handleSubmit(true));
+      } else if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      } else {
+        Swal.fire({
+          title: 'Submit Success!',
+          text: 'Ratings submitted successfully, wait for the results!',
+          icon: 'success',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate(`/rating/${spaceLink}`);
+          }
+        });
+        return response.json();
+      }
+    });
   };
 
   const handleNext = () => {
