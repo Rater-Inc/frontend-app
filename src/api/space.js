@@ -37,3 +37,21 @@ export const getSpaceByLink = async (spaceLink, token) => {
     throw error;
   }
 };
+
+export const getRatings = async (spaceLink, token) => {
+  try {
+    const response = await apiService.post(`/api/Space/SpaceResults`, '', {
+      params: {
+        link: spaceLink,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
