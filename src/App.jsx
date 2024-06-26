@@ -21,7 +21,10 @@ function App() {
         <Route path="/" element={<CreateSpacePage />} />
         <Route path="/rating/:spaceLink" element={<RatingPage />} />
         <Route path="/result-display" element={<PersonalResultPage />} />
-        <Route path="/general-result" element={<GeneralResultPage />} />
+        <Route
+          path="/general-result/:spaceLink"
+          element={<GeneralResultPage />}
+        />
       </Routes>
     </ThemeProvider>
   );
