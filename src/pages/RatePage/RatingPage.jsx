@@ -8,6 +8,7 @@ import {
   Box,
   Paper,
   MobileStepper,
+  CircularProgress,
 } from '@mui/material';
 import Rating from '@mui/material/Rating';
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
@@ -31,6 +32,8 @@ const RatingPage = () => {
   const [token, setToken] = useState('');
   const [metrics, setMetrics] = useState([]);
   const [spaceId, setSpaceId] = useState(0);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -78,6 +81,7 @@ const RatingPage = () => {
   };
 
   const handleSubmit = (retry = false) => {
+    setIsSubmitting(true);
     const ratingDetails = [];
 
     for (const participantId in ratings) {
@@ -97,10 +101,9 @@ const RatingPage = () => {
     };
 
     submitRatings(payload, token).then((response) => {
+      setIsSubmitting(false);
       if (response.status === 401 && !retry) {
         handleLogin(() => handleSubmit(true));
-      } else if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
       } else {
         Swal.fire({
           title: 'Submit Success!',
@@ -108,7 +111,7 @@ const RatingPage = () => {
           icon: 'success',
         }).then((result) => {
           if (result.isConfirmed) {
-            navigate(`/rating/${spaceLink}`);
+            navigate(`/general-result/${spaceLink}`);
           }
         });
         return response.json();
@@ -129,7 +132,7 @@ const RatingPage = () => {
       <Container>
         <Box mt={5}>
           <Typography variant="h4" align="center">
-            Enter Space
+            Enter Space to ratet your friends
           </Typography>
           <TextField
             label="Nickname"
@@ -242,8 +245,13 @@ const RatingPage = () => {
               fullWidth
               onClick={() => handleSubmit(false)}
               style={{ marginTop: '16px' }}
+              disabled={isSubmitting}
             >
-              Submit Ratings
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Submit Ratings'
+              )}
             </Button>
           )}
         </Box>
