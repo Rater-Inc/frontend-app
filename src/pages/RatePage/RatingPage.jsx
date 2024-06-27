@@ -132,7 +132,7 @@ const RatingPage = () => {
       <Container>
         <Box mt={5}>
           <Typography variant="h4" align="center">
-            Enter Space to ratet your friends
+            Enter Space to rate your friends!
           </Typography>
           <TextField
             label="Nickname"

@@ -24,7 +24,6 @@ const GeneralResultPage = () => {
   const [token, setToken] = useState('');
 
   //TODO: Move this into authenticate component bellow..
-  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -67,14 +66,6 @@ const GeneralResultPage = () => {
           <Typography variant="h4" align="center">
             Enter Space to see the results
           </Typography>
-          <TextField
-            label="Nickname"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
           <TextField
             label="Password"
             type="password"
