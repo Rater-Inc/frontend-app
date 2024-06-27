@@ -64,7 +64,7 @@ const GeneralResultPage = () => {
       <Container>
         <Box mt={5}>
           <Typography variant="h4" align="center">
-            Enter Space
+            Enter Space to see the results
           </Typography>
           <TextField
             label="Nickname"
@@ -196,31 +196,3 @@ const GeneralResultPage = () => {
 };
 
 export default GeneralResultPage;
-
-/*
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        width="100%"
-      >
-        {ratingData?.metricsBest.map((metric, index) => (
-          <Card
-            key={index}
-            variant="outlined"
-            style={{
-              width: '100%',
-              marginBottom: '10px',
-              textAlign: 'center',
-            }}
-          >
-            <CardContent>
-              <Typography variant="h6">Best in {metric.metric}</Typography>
-              <Typography variant="h5">
-                {metric.name} - {metric.score}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-*/
