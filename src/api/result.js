@@ -8,12 +8,16 @@ const apiService = axios.create({
 
 export const submitRatings = async (requestBody, token) => {
   try {
-    const response = await apiService.post(`api/Rating`, requestBody, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `bearer ${token}`,
-      },
-    });
+    const response = await apiService.post(
+      `api/rating/add-ratings`,
+      requestBody,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `bearer ${token}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {

@@ -8,11 +8,15 @@ const apiService = axios.create({
 
 export const createSpace = async (spaceData) => {
   try {
-    const response = await apiService.post('api/space/createspace', spaceData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiService.post(
+      'api/space/create-space',
+      spaceData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {
@@ -22,7 +26,7 @@ export const createSpace = async (spaceData) => {
 
 export const getSpaceByLink = async (spaceLink, token) => {
   try {
-    const response = await apiService.post(`api/space/GetSpaceByLink`, '', {
+    const response = await apiService.post(`api/space/get-space`, '', {
       params: {
         link: spaceLink,
       },
@@ -40,7 +44,7 @@ export const getSpaceByLink = async (spaceLink, token) => {
 
 export const getRatings = async (spaceLink, token) => {
   try {
-    const response = await apiService.post(`/api/Space/SpaceResults`, '', {
+    const response = await apiService.post(`/api/space/space-result`, '', {
       params: {
         link: spaceLink,
       },
