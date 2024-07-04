@@ -10,6 +10,7 @@ import {
   Grid,
   Container,
   TextField,
+  CircularProgress,
 } from '@mui/material';
 import Swal from 'sweetalert2';
 
@@ -23,14 +24,17 @@ const GeneralResultPage = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [token, setToken] = useState('');
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   //TODO: Move this into authenticate component bellow..
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    setIsSubmitting(true);
+
     try {
       const data = await spaceLogin(spaceLink, password);
-
       if (data.success === false) {
         Swal.fire({
           icon: 'error',
@@ -43,6 +47,8 @@ const GeneralResultPage = () => {
       }
     } catch (error) {
       console.log('Auth process error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,7 +93,11 @@ const GeneralResultPage = () => {
             onClick={handleLogin}
             style={{ marginTop: '16px' }}
           >
-            Enter
+            {isSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Enter'
+            )}
           </Button>
         </Box>
       </Container>

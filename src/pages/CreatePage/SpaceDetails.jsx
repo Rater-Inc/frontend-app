@@ -8,6 +8,7 @@ import {
   FormControlLabel,
   Switch,
   Button,
+  CircularProgress,
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -25,6 +26,7 @@ const SpaceDetails = ({ metrics, players }) => {
     locked: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -41,6 +43,7 @@ const SpaceDetails = ({ metrics, players }) => {
   };
 
   const handleCreateSpace = async () => {
+    setIsSubmitting(true);
     const participants = players.map((player) => ({
       ...player,
       participantName: player.name,
@@ -68,9 +71,12 @@ const SpaceDetails = ({ metrics, players }) => {
       .catch((error) => {
         Swal.fire({
           title: 'Error Occurred',
-          text: 'Error Creating Space!',
+          text: 'An error occurred while creating space. Please try again!',
           icon: 'error',
         });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -148,8 +154,13 @@ const SpaceDetails = ({ metrics, players }) => {
         color="primary"
         onClick={handleCreateSpace}
         sx={{ marginTop: 2 }}
+        disabled={isSubmitting}
       >
-        Create Space
+        {isSubmitting ? (
+          <CircularProgress size={24} color="inherit" />
+        ) : (
+          'Create Space'
+        )}
       </Button>
     </Box>
   );
