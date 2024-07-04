@@ -51,9 +51,10 @@ const RatingPage = () => {
   }, [authenticated]);
 
   const handleLogin = async () => {
+    setIsSubmitting(true);
     try {
       const data = await spaceLogin(spaceLink, password);
-
+      setIsSubmitting(false);
       if (data.success === false) {
         Swal.fire({
           icon: 'error',
@@ -162,8 +163,13 @@ const RatingPage = () => {
             fullWidth
             onClick={handleLogin}
             style={{ marginTop: '16px' }}
+            disabled={isSubmitting}
           >
-            Enter
+            {isSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Enter'
+            )}
           </Button>
         </Box>
       </Container>
