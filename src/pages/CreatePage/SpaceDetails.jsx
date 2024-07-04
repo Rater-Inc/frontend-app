@@ -57,7 +57,6 @@ const SpaceDetails = ({ metrics, players }) => {
 
     const data = await createSpace(spaceData)
       .then((data) => {
-        setIsSubmitting(false);
         Swal.fire({
           title: 'Success',
           text: 'Space Created Successfully!',
@@ -72,9 +71,12 @@ const SpaceDetails = ({ metrics, players }) => {
       .catch((error) => {
         Swal.fire({
           title: 'Error Occurred',
-          text: 'Error Creating Space!',
+          text: 'An error occurred while creating space. Please try again!',
           icon: 'error',
         });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 

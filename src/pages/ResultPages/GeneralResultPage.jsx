@@ -35,7 +35,6 @@ const GeneralResultPage = () => {
 
     try {
       const data = await spaceLogin(spaceLink, password);
-      setIsSubmitting(false);
       if (data.success === false) {
         Swal.fire({
           icon: 'error',
@@ -48,6 +47,8 @@ const GeneralResultPage = () => {
       }
     } catch (error) {
       console.log('Auth process error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
