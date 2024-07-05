@@ -68,6 +68,7 @@ const RatingPage = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleRatingChange = (participantId, metricId, value) => {
     setRatings((prevRatings) => ({
       ...prevRatings,
