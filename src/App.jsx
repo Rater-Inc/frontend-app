@@ -6,6 +6,7 @@ import CreateSpacePage from './pages/CreatePage/CreateSpacePage';
 import RatingPage from './pages/RatePage/RatingPage';
 import PersonalResultPage from './pages/ResultPages/PersonalResultPage';
 import GeneralResultPage from './pages/ResultPages/GeneralResultPage';
+import SpaceOperations from './pages/LandingPages/SpaceOperations';
 
 function App() {
   const darkTheme = createTheme({
@@ -24,6 +25,10 @@ function App() {
         <Route
           path="/general-result/:spaceLink"
           element={<GeneralResultPage />}
+        />
+        <Route
+          path="/space-operations/:spaceLink"
+          element={<SpaceOperations />}
         />
       </Routes>
     </ThemeProvider>
