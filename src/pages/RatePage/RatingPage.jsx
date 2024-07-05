@@ -37,41 +37,37 @@ const RatingPage = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (authenticated) {
-      getSpaceByLink(spaceLink, token)
-        .then((data) => {
-          setParticipants(data.participants);
-          setMetrics(data.metrics);
-        })
-        .catch((error) => {
-          console.error('Error fetching participants:', error);
-        });
-    }
-  }, [authenticated]);
-
-  const handleLogin = async () => {
+  const handleLoginAndFetchDetails = async () => {
     setIsSubmitting(true);
     try {
-      const data = await spaceLogin(spaceLink, password);
-      if (data.success === false) {
-        Swal.fire({
+      const loginData = await spaceLogin(spaceLink, password);
+      if (loginData.success === false) {
+        await Swal.fire({
           icon: 'error',
           title: 'Oops... Wrong password!',
-          text: 'Ask your friend for the correct password..',
+          text: 'Ask your friend for the correct password.',
         });
-      } else {
-        setAuthenticated(true);
-        setToken(data.jwtToken);
-        setSpaceId(data.spaceId);
+        return;
       }
+
+      setToken(loginData.jwtToken);
+      setSpaceId(loginData.spaceId);
+
+      const spaceData = await getSpaceByLink(spaceLink, loginData.jwtToken);
+      setParticipants(spaceData.participants);
+      setMetrics(spaceData.metrics);
+      setAuthenticated(true);
     } catch (error) {
-      console.log('Auth process error:', error);
+      console.error('Error in login or fetching space details:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred during login or fetching space details. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleRatingChange = (participantId, metricId, value) => {
     setRatings((prevRatings) => ({
       ...prevRatings,
@@ -173,7 +169,7 @@ const RatingPage = () => {
             variant="contained"
             color="primary"
             fullWidth
-            onClick={handleLogin}
+            onClick={handleLoginAndFetchDetails}
             style={{ marginTop: '16px' }}
             disabled={isSubmitting}
           >
@@ -186,96 +182,101 @@ const RatingPage = () => {
         </Box>
       </Container>
     );
-  }
-
-  return (
-    <Container>
-      <Box
-        mt={5}
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-        minHeight="80vh"
-      >
-        <Box>
-          <Typography variant="h4" align="center">
-            Rate {participants[activeStep]?.participantName} participant
-          </Typography>
-          {participants.map((participant, index) => (
-            <Box key={participant.participantId} hidden={index !== activeStep}>
-              {metrics.map((metric) => (
-                <Paper
-                  key={metric.metricId}
-                  style={{ padding: '16px', margin: '16px 0' }}
+  } else if (authenticated && participants.length !== 0) {
+    return (
+      <Container>
+        <Box
+          mt={5}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+          minHeight="80vh"
+        >
+          <Box>
+            <Typography variant="h4" align="center">
+              Rate {participants[activeStep]?.participantName} participant
+            </Typography>
+            {participants.map((participant, index) => (
+              <Box
+                key={participant.participantId}
+                hidden={index !== activeStep}
+              >
+                {metrics.map((metric) => (
+                  <Paper
+                    key={metric.metricId}
+                    style={{ padding: '16px', margin: '16px 0' }}
+                  >
+                    <Typography variant="h6">{metric.name}</Typography>
+                    <Rating
+                      name={`rating-${participant.participantId}-${metric.metricId}`}
+                      value={
+                        (ratings[participant.participantId] &&
+                          ratings[participant.participantId][
+                            metric.metricId
+                          ]) ||
+                        0
+                      }
+                      onChange={(event, newValue) =>
+                        handleRatingChange(
+                          participant.participantId,
+                          metric.metricId,
+                          newValue
+                        )
+                      }
+                    />
+                  </Paper>
+                ))}
+              </Box>
+            ))}
+          </Box>
+          <Box>
+            <MobileStepper
+              steps={maxSteps}
+              position="static"
+              variant="dots"
+              activeStep={activeStep}
+              nextButton={
+                <Button
+                  size="small"
+                  onClick={handleNext}
+                  disabled={activeStep === maxSteps - 1}
                 >
-                  <Typography variant="h6">{metric.name}</Typography>
-                  <Rating
-                    name={`rating-${participant.participantId}-${metric.metricId}`}
-                    value={
-                      (ratings[participant.participantId] &&
-                        ratings[participant.participantId][metric.metricId]) ||
-                      0
-                    }
-                    onChange={(event, newValue) =>
-                      handleRatingChange(
-                        participant.participantId,
-                        metric.metricId,
-                        newValue
-                      )
-                    }
-                  />
-                </Paper>
-              ))}
-            </Box>
-          ))}
-        </Box>
-        <Box>
-          <MobileStepper
-            steps={maxSteps}
-            position="static"
-            variant="dots"
-            activeStep={activeStep}
-            nextButton={
+                  Next
+                  <KeyboardArrowRight />
+                </Button>
+              }
+              backButton={
+                <Button
+                  size="small"
+                  onClick={handleBack}
+                  disabled={activeStep === 0}
+                >
+                  <KeyboardArrowLeft />
+                  Back
+                </Button>
+              }
+            />
+            {activeStep === maxSteps - 1 && (
               <Button
-                size="small"
-                onClick={handleNext}
-                disabled={activeStep === maxSteps - 1}
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={() => handleSubmit(false)}
+                style={{ marginTop: '16px' }}
+                disabled={isSubmitting}
               >
-                Next
-                <KeyboardArrowRight />
+                {isSubmitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Submit Ratings'
+                )}
               </Button>
-            }
-            backButton={
-              <Button
-                size="small"
-                onClick={handleBack}
-                disabled={activeStep === 0}
-              >
-                <KeyboardArrowLeft />
-                Back
-              </Button>
-            }
-          />
-          {activeStep === maxSteps - 1 && (
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={() => handleSubmit(false)}
-              style={{ marginTop: '16px' }}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Submit Ratings'
-              )}
-            </Button>
-          )}
+            )}
+          </Box>
         </Box>
-      </Box>
-    </Container>
-  );
+      </Container>
+    );
+  }
 };
 
 export default RatingPage;
