@@ -78,54 +78,57 @@ const RatingPage = () => {
     }));
   };
 
-  const handleSubmit = (retry = false) => {
+  const handleSubmit = async (retry = false) => {
     setIsSubmitting(true);
-    const ratingDetails = [];
 
-    for (const participantId in ratings) {
-      for (const metricId in ratings[participantId]) {
-        ratingDetails.push({
-          rateeId: Number(participantId),
-          metricId: Number(metricId),
-          score: ratings[participantId][metricId],
-        });
+    try {
+      // Get token again to get space details since it can be used only once.
+      // TODO: This is a temporary solution, we need to find a better way to handle this.
+      // One possible solution might be token update service in the backend with the same token instead of getting a new one.
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const spaceData = await spaceLogin(spaceLink, password);
+      const newToken = spaceData.jwtToken;
+      const newSpaceId = spaceData.spaceId;
+
+      const ratingDetails = Object.entries(ratings).flatMap(
+        ([participantId, metrics]) =>
+          Object.entries(metrics).map(([metricId, score]) => ({
+            rateeId: Number(participantId),
+            metricId: Number(metricId),
+            score,
+          }))
+      );
+
+      const payload = {
+        raterNickName: nickname,
+        spaceId: newSpaceId,
+        ratingDetails,
+      };
+
+      const response = await submitRatings(payload, newToken);
+
+      if (response.status === 401 && !retry) {
+        await handleLogin();
+        return handleSubmit(true);
       }
-    }
 
-    const payload = {
-      raterNickName: nickname,
-      spaceId: spaceId,
-      ratingDetails,
-    };
-
-    submitRatings(payload, token)
-      .then((response) => {
-        if (response.status === 401 && !retry) {
-          handleLogin(() => handleSubmit(true));
-        } else {
-          Swal.fire({
-            title: 'Submit Success!',
-            text: 'Ratings submitted successfully, wait for the results!',
-            icon: 'success',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              navigate(`/general-result/${spaceLink}`);
-            }
-          });
-          return response.json();
-        }
-      })
-      .catch((error) => {
-        console.log('Auth process error:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'An error occurred while submitting ratings. Please try again.',
-          icon: 'error',
-        });
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+      await Swal.fire({
+        title: 'Submit Success!',
+        text: 'Ratings submitted successfully, wait for the results!',
+        icon: 'success',
       });
+
+      navigate(`/general-result/${spaceLink}`);
+    } catch (error) {
+      console.error('Error in submission process:', error);
+      await Swal.fire({
+        title: 'Error',
+        text: 'An error occurred while submitting ratings. Please try again.',
+        icon: 'error',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = () => {
