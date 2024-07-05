@@ -51,9 +51,9 @@ const RatingPage = () => {
   }, [authenticated]);
 
   const handleLogin = async () => {
+    setIsSubmitting(true);
     try {
       const data = await spaceLogin(spaceLink, password);
-
       if (data.success === false) {
         Swal.fire({
           icon: 'error',
@@ -67,6 +67,8 @@ const RatingPage = () => {
       }
     } catch (error) {
       console.log('Auth process error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -100,23 +102,34 @@ const RatingPage = () => {
       ratingDetails,
     };
 
-    submitRatings(payload, token).then((response) => {
-      setIsSubmitting(false);
-      if (response.status === 401 && !retry) {
-        handleLogin(() => handleSubmit(true));
-      } else {
+    submitRatings(payload, token)
+      .then((response) => {
+        if (response.status === 401 && !retry) {
+          handleLogin(() => handleSubmit(true));
+        } else {
+          Swal.fire({
+            title: 'Submit Success!',
+            text: 'Ratings submitted successfully, wait for the results!',
+            icon: 'success',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate(`/general-result/${spaceLink}`);
+            }
+          });
+          return response.json();
+        }
+      })
+      .catch((error) => {
+        console.log('Auth process error:', error);
         Swal.fire({
-          title: 'Submit Success!',
-          text: 'Ratings submitted successfully, wait for the results!',
-          icon: 'success',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate(`/general-result/${spaceLink}`);
-          }
+          title: 'Error',
+          text: 'An error occurred while submitting ratings. Please try again.',
+          icon: 'error',
         });
-        return response.json();
-      }
-    });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const handleNext = () => {
@@ -162,8 +175,13 @@ const RatingPage = () => {
             fullWidth
             onClick={handleLogin}
             style={{ marginTop: '16px' }}
+            disabled={isSubmitting}
           >
-            Enter
+            {isSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Enter'
+            )}
           </Button>
         </Box>
       </Container>
