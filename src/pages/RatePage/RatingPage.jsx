@@ -11,9 +11,14 @@ import {
   CircularProgress,
 } from '@mui/material';
 import Rating from '@mui/material/Rating';
-import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
+import {
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  LocalDining,
+} from '@mui/icons-material';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'universal-cookie';
 
 import { spaceLogin } from '../../api/auth';
 import { submitRatings } from '../../api/result';
@@ -32,10 +37,94 @@ const RatingPage = () => {
   const [token, setToken] = useState('');
   const [metrics, setMetrics] = useState([]);
   const [spaceId, setSpaceId] = useState(0);
+  const [rated, setRated] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const cookies = new Cookies();
+
   const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    setIsSubmitting(true);
+    try {
+      const loginData = await spaceLogin(spaceLink, password);
+      if (loginData.success === false) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Oops... Wrong password!',
+          text: 'Ask your friend for the correct password.',
+        });
+        return;
+      }
+      setToken(loginData.jwtToken);
+      setSpaceId(loginData.spaceId);
+      setAuthenticated(true);
+    } catch (error) {
+      console.error('Error in login:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred during login. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFetchDetails = async (pass) => {
+    try {
+      const loginData = await spaceLogin(spaceLink, pass);
+      const spaceData = await getSpaceByLink(spaceLink, loginData.jwtToken);
+      setParticipants(spaceData.participants);
+      setMetrics(spaceData.metrics);
+      setSpaceDataCookie(spaceData.metrics, spaceData.participants);
+    } catch (error) {
+      console.error('Error in fetching space details:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred during fetching space details.',
+      });
+    }
+  };
+
+  const setLoginCookie = (password, nick, expirationSeconds = 86400) => {
+    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
+
+    cookies.set(`${spaceLink}_password`, password, {
+      expires: expirationDate,
+      path: '/',
+    });
+    cookies.set(`${spaceLink}_nickname`, nick, {
+      expires: expirationDate,
+      path: '/',
+    });
+    cookies.set(`${spaceLink}_auth`, true, {
+      expires: expirationDate,
+      path: '/',
+    });
+  };
+
+  const setRateCookie = (expirationSeconds = 86400) => {
+    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
+    cookies.set(`${spaceLink}_rateInfo`, 'rated', {
+      expires: expirationDate,
+      path: '/',
+    });
+  };
+
+  const setSpaceDataCookie = (mtr, ptp, expirationSeconds = 86400) => {
+    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
+    const spaceData = {
+      metric: mtr,
+      participant: ptp,
+    };
+    cookies.set(`${spaceLink}_spaceData`, JSON.stringify(spaceData), {
+      expires: expirationDate,
+      path: '/',
+    });
+  };
 
   const handleLoginAndFetchDetails = async () => {
     setIsSubmitting(true);
@@ -53,9 +142,14 @@ const RatingPage = () => {
       setToken(loginData.jwtToken);
       setSpaceId(loginData.spaceId);
 
-      const spaceData = await getSpaceByLink(spaceLink, loginData.jwtToken);
-      setParticipants(spaceData.participants);
-      setMetrics(spaceData.metrics);
+      if (!(await checkSpaceDataCookie())) {
+        const spaceData = await getSpaceByLink(spaceLink, loginData.jwtToken);
+        setParticipants(spaceData.participants);
+        setMetrics(spaceData.metrics);
+        setSpaceDataCookie(spaceData.metrics, spaceData.participants);
+      }
+
+      setLoginCookie(password, nickname);
       setAuthenticated(true);
     } catch (error) {
       console.error('Error in login or fetching space details:', error);
@@ -94,14 +188,14 @@ const RatingPage = () => {
       const ratingDetails = Object.entries(ratings).flatMap(
         ([participantId, metrics]) =>
           Object.entries(metrics).map(([metricId, score]) => ({
-            rateeId: Number(participantId),
-            metricId: Number(metricId),
+            rateeId: parseInt(participantId, 10),
+            metricId: parseInt(metricId, 10),
             score,
           }))
       );
 
       const payload = {
-        raterNickName: nickname,
+        raterNickName: String(nickname),
         spaceId: newSpaceId,
         ratingDetails,
       };
@@ -109,7 +203,7 @@ const RatingPage = () => {
       const response = await submitRatings(payload, newToken);
 
       if (response.status === 401 && !retry) {
-        await handleLogin();
+        await handleLogin(password);
         return handleSubmit(true);
       }
 
@@ -119,6 +213,7 @@ const RatingPage = () => {
         icon: 'success',
       });
 
+      setRateCookie();
       navigate(`/general-result/${spaceLink}`);
     } catch (error) {
       console.error('Error in submission process:', error);
@@ -140,7 +235,61 @@ const RatingPage = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  if (!authenticated) {
+  const checkRateCookie = () => {
+    const isRated = cookies.get(`${spaceLink}_rateInfo`);
+    if (isRated === 'rated') {
+      setRated(true);
+    }
+  };
+
+  const checkLoginCookie = async () => {
+    const auth = cookies.get(`${spaceLink}_auth`);
+    const pass = cookies.get(`${spaceLink}_password`) || '';
+    const cookieNickname = cookies.get(`${spaceLink}_nickname`) || '';
+    setPassword(pass);
+    if (auth && pass) {
+      setNickname(cookieNickname);
+      setAuthenticated(true);
+      if (rated === false) {
+        if (!(await checkSpaceDataCookie())) {
+          await handleFetchDetails(pass);
+        }
+      }
+    }
+  };
+
+  const checkSpaceDataCookie = async () => {
+    const encodedData = cookies.get(`${spaceLink}_spaceData`);
+    if (encodedData) {
+      setMetrics(encodedData.metric);
+      setParticipants(encodedData.participant);
+      return encodedData;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    const initializeAuthentication = async () => {
+      checkRateCookie();
+      if (!authenticated) {
+        await checkLoginCookie();
+      }
+    };
+
+    initializeAuthentication();
+  }, [authenticated, rated]);
+
+  if (rated) {
+    setTimeout(() => {
+      navigate(`/space-operations/${spaceLink}`);
+    }, 5000);
+    return (
+      <div>
+        <p>You are already rated</p>
+        <p>You will be redirected soon..</p>
+      </div>
+    );
+  } else if (!authenticated) {
     return (
       <Container>
         <Box mt={5}>
@@ -198,7 +347,7 @@ const RatingPage = () => {
         >
           <Box>
             <Typography variant="h4" align="center">
-              Rate {participants[activeStep]?.participantName} participant
+              {participants[activeStep]?.participantName}
             </Typography>
             {participants.map((participant, index) => (
               <Box
