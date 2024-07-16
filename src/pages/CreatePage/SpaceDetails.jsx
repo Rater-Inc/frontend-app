@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'universal-cookie';
 
+import { setLoginCookie } from '../../helpers/cookies/setlogincookie';
 import { createSpace } from '../../api/space';
 
 const SpaceDetails = ({ metrics, players }) => {
@@ -58,28 +59,6 @@ const SpaceDetails = ({ metrics, players }) => {
       participants,
     };
 
-    const setLoginCookie = (
-      spaceLink,
-      password,
-      nick,
-      expirationSeconds = 86400
-    ) => {
-      const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
-
-      cookies.set(`${spaceLink}_password`, password, {
-        expires: expirationDate,
-        path: '/',
-      });
-      cookies.set(`${spaceLink}_auth`, true, {
-        expires: expirationDate,
-        path: '/',
-      });
-      cookies.set(`${spaceLink}_nickname`, nick, {
-        expires: expirationDate,
-        path: '/',
-      });
-    };
-
     const data = await createSpace(spaceData)
       .then((data) => {
         Swal.fire({
@@ -89,9 +68,9 @@ const SpaceDetails = ({ metrics, players }) => {
         }).then((result) => {
           if (result.isConfirmed) {
             setLoginCookie(
-              data.link,
               details.password,
-              details.creatorNickname
+              details.creatorNickname,
+              data.link
             );
             console.log('space created');
             navigate(`/space-operations/${data.link}`);

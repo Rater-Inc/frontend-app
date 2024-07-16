@@ -24,6 +24,10 @@ import { spaceLogin } from '../../api/auth';
 import { submitRatings } from '../../api/result';
 import { getSpaceByLink } from '../../api/space';
 
+import { setLoginCookie } from '../../helpers/cookies/setlogincookie';
+import { setSpaceDataCookie } from '../../helpers/cookies/setspacedatacookie';
+import { setRateCookie } from '../../helpers/cookies/setratecookie';
+
 const RatingPage = () => {
   const { spaceLink } = useParams();
   const [nickname, setNickname] = useState('');
@@ -78,7 +82,7 @@ const RatingPage = () => {
       const spaceData = await getSpaceByLink(spaceLink, loginData.jwtToken);
       setParticipants(spaceData.participants);
       setMetrics(spaceData.metrics);
-      setSpaceDataCookie(spaceData.metrics, spaceData.participants);
+      setSpaceDataCookie(spaceData.metrics, spaceData.participants, spaceLink);
     } catch (error) {
       console.error('Error in fetching space details:', error);
       await Swal.fire({
@@ -87,43 +91,6 @@ const RatingPage = () => {
         text: 'An error occurred during fetching space details.',
       });
     }
-  };
-
-  const setLoginCookie = (password, nick, expirationSeconds = 86400) => {
-    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
-
-    cookies.set(`${spaceLink}_password`, password, {
-      expires: expirationDate,
-      path: '/',
-    });
-    cookies.set(`${spaceLink}_nickname`, nick, {
-      expires: expirationDate,
-      path: '/',
-    });
-    cookies.set(`${spaceLink}_auth`, true, {
-      expires: expirationDate,
-      path: '/',
-    });
-  };
-
-  const setRateCookie = (expirationSeconds = 86400) => {
-    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
-    cookies.set(`${spaceLink}_rateInfo`, 'rated', {
-      expires: expirationDate,
-      path: '/',
-    });
-  };
-
-  const setSpaceDataCookie = (mtr, ptp, expirationSeconds = 86400) => {
-    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
-    const spaceData = {
-      metric: mtr,
-      participant: ptp,
-    };
-    cookies.set(`${spaceLink}_spaceData`, JSON.stringify(spaceData), {
-      expires: expirationDate,
-      path: '/',
-    });
   };
 
   const handleLoginAndFetchDetails = async () => {
@@ -149,7 +116,7 @@ const RatingPage = () => {
         setSpaceDataCookie(spaceData.metrics, spaceData.participants);
       }
 
-      setLoginCookie(password, nickname);
+      setLoginCookie(password, nickname, spaceLink);
       setAuthenticated(true);
     } catch (error) {
       console.error('Error in login or fetching space details:', error);
@@ -213,7 +180,7 @@ const RatingPage = () => {
         icon: 'success',
       });
 
-      setRateCookie();
+      setRateCookie(spaceLink);
       navigate(`/general-result/${spaceLink}`);
     } catch (error) {
       console.error('Error in submission process:', error);

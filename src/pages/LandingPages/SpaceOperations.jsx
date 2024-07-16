@@ -19,6 +19,7 @@ import Cookies from 'universal-cookie';
 
 import { spaceLogin } from '../../api/auth';
 import { getSpaceByLink } from '../../api/space';
+import { setLoginCookie } from '../../helpers/cookies/setlogincookie';
 
 import { AutoFixHighRounded, TokenOutlined } from '@mui/icons-material';
 
@@ -38,9 +39,6 @@ const SpaceOperations = () => {
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState('');
-  const [participants, setParticipants] = useState([]);
-  const [metrics, setMetrics] = useState([]);
-  const [token, setToken] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,23 +54,6 @@ const SpaceOperations = () => {
     if (auth) {
       setAuthenticated(true);
     }
-  };
-
-  const setLoginCookie = (password, nick, expirationSeconds = 86400) => {
-    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
-
-    cookies.set(`${spaceLink}_password`, password, {
-      expires: expirationDate,
-      path: '/',
-    });
-    cookies.set(`${spaceLink}_auth`, true, {
-      expires: expirationDate,
-      path: '/',
-    });
-    cookies.set(`${spaceLink}_nickname`, nick, {
-      expires: expirationDate,
-      path: '/',
-    });
   };
 
   const setSpaceDataCookie = (mtr, ptp, expirationSeconds = 86400) => {
@@ -91,8 +72,6 @@ const SpaceOperations = () => {
     setIsSubmitting(true);
     try {
       const spaceData = await getSpaceByLink(spaceLink, myToken);
-      setMetrics(spaceData.metrics);
-      setParticipants(spaceData.participants);
       setSpaceDataCookie(spaceData.metrics, spaceData.participants);
     } catch (error) {
       console.error('Error in fetching space details:', error);
@@ -118,11 +97,9 @@ const SpaceOperations = () => {
         });
         return;
       }
-      setToken(loginData.jwtToken);
 
       await handleFetchDetails(loginData.jwtToken);
-
-      setLoginCookie(password, nickname);
+      setLoginCookie(password, nickname, spaceLink);
       setAuthenticated(true);
     } catch (error) {
       console.error('Error in login or fetching space details:', error);
