@@ -23,7 +23,7 @@ const NotFound = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          py: 10, // Add padding top and bottom
+          py: 15, // Add padding top and bottom
           minHeight: { xs: '100vh', sm: 'auto' }, // Full height on mobile, auto on larger screens
         }}
       >
