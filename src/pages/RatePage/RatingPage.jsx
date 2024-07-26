@@ -24,9 +24,9 @@ import { spaceLogin } from '../../api/auth';
 import { submitRatings } from '../../api/result';
 import { getSpaceByLink } from '../../api/space';
 
-import { setLoginCookie } from '../../utils/cookieUtil';
-import { setSpaceDataCookie } from '../../utils/cookieUtil';
-import { setRateCookie } from '../../utils/cookieUtil';
+import { setLoginCookie } from '../../utils/cookie';
+import { setSpaceDataCookie } from '../../utils/cookie';
+import { setRateCookie } from '../../utils/cookie';
 
 const RatingPage = () => {
   const { spaceLink } = useParams();
