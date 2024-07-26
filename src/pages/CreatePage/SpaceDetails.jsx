@@ -16,7 +16,7 @@ import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'universal-cookie';
 
-import { setLoginCookie } from '../../helpers/cookies/setlogincookie';
+import { setLoginCookie } from '../../utils/cookieUtil';
 import { createSpace } from '../../api/space';
 
 const SpaceDetails = ({ metrics, players }) => {

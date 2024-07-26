@@ -19,7 +19,7 @@ import Cookies from 'universal-cookie';
 
 import { spaceLogin } from '../../api/auth';
 import { getSpaceByLink } from '../../api/space';
-import { setLoginCookie } from '../../helpers/cookies/setlogincookie';
+import { setLoginCookie } from '../../utils/cookieUtil';
 
 import { AutoFixHighRounded, TokenOutlined } from '@mui/icons-material';
 
