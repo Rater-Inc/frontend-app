@@ -14,7 +14,9 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'universal-cookie';
 
+import { setLoginCookie } from '../../utils/cookie';
 import { createSpace } from '../../api/space';
 
 const SpaceDetails = ({ metrics, players }) => {
@@ -27,6 +29,8 @@ const SpaceDetails = ({ metrics, players }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const cookies = new Cookies();
 
   const navigate = useNavigate();
 
@@ -63,7 +67,13 @@ const SpaceDetails = ({ metrics, players }) => {
           icon: 'success',
         }).then((result) => {
           if (result.isConfirmed) {
-            navigate(`/rating/${data.link}`);
+            setLoginCookie(
+              details.password,
+              details.creatorNickname,
+              data.link
+            );
+            console.log('space created');
+            navigate(`/space-operations/${data.link}`);
           }
         });
         console.log('Space created successfully:', data);
