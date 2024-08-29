@@ -6,6 +6,7 @@ export const setLoginCookie = (
   password,
   nick,
   spaceLink,
+  token,
   expirationSeconds = 86400
 ) => {
   const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
@@ -19,6 +20,10 @@ export const setLoginCookie = (
     path: '/',
   });
   cookies.set(`${spaceLink}_nickname`, nick, {
+    expires: expirationDate,
+    path: '/',
+  });
+  cookies.set(`${spaceLink}_token`, token, {
     expires: expirationDate,
     path: '/',
   });

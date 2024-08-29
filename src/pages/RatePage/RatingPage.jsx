@@ -116,7 +116,7 @@ const RatingPage = () => {
         setSpaceDataCookie(spaceData.metrics, spaceData.participants);
       }
 
-      setLoginCookie(password, nickname, spaceLink);
+      setLoginCookie(password, nickname, spaceLink,loginData.jwtToken);
       setAuthenticated(true);
     } catch (error) {
       console.error('Error in login or fetching space details:', error);
