@@ -9,7 +9,7 @@ const apiService = axios.create({
 export const submitRatings = async (requestBody, token) => {
   try {
     const response = await apiService.post(
-      `api/rating/add-ratings`,
+      `api/Space/add-ratings`,
       requestBody,
       {
         headers: {
