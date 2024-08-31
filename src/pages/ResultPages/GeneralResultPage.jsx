@@ -13,10 +13,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import Swal from 'sweetalert2';
+import Cookies from 'universal-cookie';
 
 import { spaceLogin } from '../../api/auth';
 import { getRatings } from '../../api/space';
 import { numberFormatter } from '../../utils/format';
+import { setLoginCookie } from '../../utils/cookie';
 
 const GeneralResultPage = () => {
   const { spaceLink } = useParams();
@@ -27,8 +29,11 @@ const GeneralResultPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   //TODO: Move this into authenticate component bellow..
+  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  const cookies = new Cookies();
 
   const handleLogin = async () => {
     setIsSubmitting(true);
@@ -42,6 +47,7 @@ const GeneralResultPage = () => {
           text: 'Ask your friend for the correct password..',
         });
       } else {
+        setLoginCookie(password, nickname, spaceLink,data.jwtToken);
         setAuthenticated(true);
         setToken(data.jwtToken);
       }
@@ -52,16 +58,32 @@ const GeneralResultPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (authenticated) {
-      getRatings(spaceLink, token)
-        .then((data) => {
-          setRatingData(data);
-        })
-        .catch((error) => {
-          console.error('Error fetching ratings:', error);
-        });
+  const checkLoginCookie = async () => {
+    const tokenCookie = cookies.get(`${spaceLink}_token`);
+    if (tokenCookie) {
+      setAuthenticated(true);
     }
+  };
+
+  useEffect(() => {
+
+    const initializeAuthentication = async () => {
+      if (!authenticated) {
+        await checkLoginCookie();
+      }
+      if (authenticated) {
+        getRatings(spaceLink, token)
+          .then((data) => {
+            setRatingData(data);
+          })
+          .catch((error) => {
+            console.error('Error fetching ratings:', error);
+          });
+      }
+    };
+
+    initializeAuthentication();
+    
   }, [authenticated]);
 
   //TODO: Move this into component so that it can be reused in RatinPage and others..
@@ -72,6 +94,14 @@ const GeneralResultPage = () => {
           <Typography variant="h4" align="center">
             Enter Space to see the results
           </Typography>
+          <TextField
+            label="Nickname"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+          />
           <TextField
             label="Password"
             type="password"

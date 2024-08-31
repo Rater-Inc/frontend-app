@@ -18,6 +18,7 @@ import Cookies from 'universal-cookie';
 
 import { setLoginCookie } from '../../utils/cookie';
 import { createSpace } from '../../api/space';
+import { spaceLogin } from '../../api/auth';
 
 const SpaceDetails = ({ metrics, players }) => {
   const [details, setDetails] = useState({
@@ -59,35 +60,43 @@ const SpaceDetails = ({ metrics, players }) => {
       participants,
     };
 
-    const data = await createSpace(spaceData)
-      .then((data) => {
-        Swal.fire({
-          title: 'Success',
-          text: 'Space Created Successfully!',
-          icon: 'success',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            setLoginCookie(
-              details.password,
-              details.creatorNickname,
-              data.link
-            );
-            console.log('space created');
-            navigate(`/space-operations/${data.link}`);
-          }
-        });
-        console.log('Space created successfully:', data);
-      })
-      .catch((error) => {
-        Swal.fire({
-          title: 'Error Occurred',
-          text: 'An error occurred while creating space. Please try again!',
-          icon: 'error',
-        });
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+    try {
+      const data = await createSpace(spaceData);
+    
+    Swal.fire({
+      title: 'Success',
+      text: 'Space Created Successfully!',
+      icon: 'success',
+    });
+
+    console.log('Space created successfully:', data);
+
+    const spaceLink = data.link;
+
+    const authResult = await spaceLogin(spaceLink, spaceData.password);
+
+    if (authResult.success) {
+      console.log(authResult.jwtToken);
+
+      setLoginCookie(
+        details.password,
+        details.creatorNickname,
+        data.link,
+        authResult.jwtToken
+      );
+    }
+
+    navigate(`/space-operations/${spaceLink}`);
+    }
+    catch (error) {
+      Swal.fire({
+        title: 'Error Occurred',
+        text: 'An error occurred while creating space. Please try again!',
+        icon: 'error',
       });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
