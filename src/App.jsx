@@ -8,6 +8,8 @@ import RatingPage from './pages/RatePage/RatingPage';
 import PersonalResultPage from './pages/ResultPages/PersonalResultPage';
 import GeneralResultPage from './pages/ResultPages/GeneralResultPage';
 import SpaceOperations from './pages/LandingPages/SpaceOperations';
+import LandingPage from './pages/LandingPages/LandingPage';
+import './index.css';
 
 function App() {
   const darkTheme = createTheme({
@@ -20,7 +22,8 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Routes>
-        <Route path="/" element={<CreateSpacePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/CreateSpace" element={<CreateSpacePage />} />
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/rating/:spaceLink" element={<RatingPage />} />
         <Route path="/result-display" element={<PersonalResultPage />} />
