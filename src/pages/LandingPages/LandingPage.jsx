@@ -3,6 +3,8 @@ import { Icon } from '@iconify/react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 import { color } from 'chart.js/helpers';
+import bgImage from '../../assets/bgimagee.jpg'; // Import the image
+
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,7 +21,7 @@ const LandingPage = () => {
       <div
         className="absolute inset-0 bg-repeat opacity-15 -z-10"
         style={{
-          backgroundImage: "url('/src/assets/bgimagee.jpg')",
+          backgroundImage: `url(${bgImage})`,
           backgroundSize: '300px 300px',
         }}
       ></div>
